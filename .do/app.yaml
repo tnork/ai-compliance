@@ -1,0 +1,77 @@
+# AI Compliance — DigitalOcean App Platform spec (READY, NOT YET APPLIED).
+#
+# This file deploys nothing on its own. To go live (later, deliberately):
+#   doctl apps create --spec .do/app.yaml          # first deploy
+#   doctl apps update <APP_ID> --spec .do/app.yaml  # subsequent deploys
+#
+# Prereqs before first apply:
+#   1. Authorize the DigitalOcean GitHub app on the your-org/aicompliance repo
+#      (dashboard → Apps → GitHub) so App Platform can pull source.
+#   2. Set the real env values — public ones can live here; SECRET-typed ones
+#      are set at apply time (see note on each), NEVER committed with a value.
+#
+# App is stateless (state lives in Supabase), so a single small instance
+# is fine and horizontal scaling is safe later.
+
+name: aicompliance
+region: nyc # US-East, pick the region nearest your Supabase project
+
+services:
+  - name: web
+    # --- Source: the web/ subdirectory of the monorepo ---
+    github:
+      repo: your-org/aicompliance
+      branch: main
+      deploy_on_push: false # manual control for now; flip to true for push-to-deploy CI/CD
+    source_dir: /web
+
+    # --- Build & run (Next.js 16 SSR; needs a Node server, not static export) ---
+    environment_slug: node-js
+    build_command: npm run build
+    run_command: npm run start
+    http_port: 8080 # DO injects PORT=8080; `next start` binds to $PORT
+    instance_size_slug: basic-xs # 1 GiB / $10-mo — 512MB OOMs on `next build`
+    instance_count: 1
+
+    # --- Health check: default TCP on http_port (omitted = fine for Next) ---
+
+    # --- Environment variables ---
+    # Public (NEXT_PUBLIC_*) must be RUN_AND_BUILD_TIME — Next inlines them at build.
+    # Secrets are type: SECRET, RUN_TIME only, value left blank here on purpose:
+    # set them at apply time via the dashboard or a gitignored values file.
+    # NEVER put a NEXT_PUBLIC_ prefix on the service/secret keys (client rule).
+    envs:
+      - key: NEXT_PUBLIC_APP_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "https://app.example.com" # app origin — invite/auth email links land on <this>/auth/confirm
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "" # public Supabase project URL (https://YOUR-PROJECT.supabase.co)
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        value: "" # public anon/publishable key (RLS-safe)
+      - key: SUPABASE_SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "" # server-only service key — set at apply, never commit a value
+      - key: RESEND_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "" # transactional email (invite/magic-link) — needed for Phase-2 invites
+      - key: STRIPE_SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "" # optional — billing stub returns null without it (no crash)
+      - key: CONNECTOR_ENC_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "" # 32-byte base64 — encrypts provider API keys at rest (capture connectors)
+      - key: CRON_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: "" # guards POST /api/cron/sync-connectors
+
+# --- Custom domain: add when going live, then point Cloudflare DNS at the app ---
+# domains:
+#   - domain: app.example.com
+#     type: PRIMARY

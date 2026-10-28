@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Build output
+.next/
+out/
+build/
+dist/
+# ...but the desktop app's build/ holds committed SOURCE (electron-builder
+# buildResources: the NSIS uninstaller script + app icon), not build output.
+# Un-ignore the dir, re-ignore its contents, then allow the source files.
+!Connectors/desktop/build/
+Connectors/desktop/build/*
+!Connectors/desktop/build/installer.nsh
+!Connectors/desktop/build/icon.ico
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Temp / local
+tmp/
+.turbo/
+/coverage/
+
+# Office lockfiles
+~$*
+.gstack/
+
+# Claude Code: shared project settings (.claude/settings.json) ARE tracked;
+# only the per-machine local-grant file stays ignored (its grants get merged
+# into settings.json when worth keeping)
+.claude/settings.local.json
+Connectors/desktop/FRIEND-TEST-CREDS.txt

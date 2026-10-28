@@ -1,0 +1,45 @@
+# RLS enforcement: replay every migration
+# from scratch on a vanilla Postgres, then FAIL the build if any public table has RLS
+# disabled or lacks its tenant-isolation policy. No secrets, no real database touched.
+name: rls-check
+
+on:
+  push:
+    branches: [main]
+    paths: ['db/migrations/**', 'scripts/**', '.github/workflows/rls-check.yml']
+  pull_request:
+    paths: ['db/migrations/**', 'scripts/**', '.github/workflows/rls-check.yml']
+
+jobs:
+  rls-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      # dummy URL only feeds the <ref> parser; the host override wins
+      SUPABASE_URL: https://ci-local.supabase.co
+      SUPABASE_DB_HOST: localhost
+      SUPABASE_DB_PORT: '5432'
+      SUPABASE_DB_USER: postgres
+      SUPABASE_DB_PASSWORD: postgres
+      SUPABASE_DB_SSL: disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - name: Apply CI auth shim (fake Supabase auth schema)
+        run: node scripts/run-sql.mjs scripts/ci/auth-shim.sql
+      - name: Replay all migrations from scratch
+        run: node scripts/migrate.mjs
+      - name: Enforce RLS + tenant policies on every public table
+        run: node scripts/check-rls.mjs
+      - name: Behavioral two-tenant isolation test (real queries as each tenant)
+        run: node scripts/ci/rls-behavioral-test.mjs

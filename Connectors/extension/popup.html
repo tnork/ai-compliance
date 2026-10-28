@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --navy:#0b1533; --green:#34e0a1; --green-deep:#0a7d55; --ink:#141c2e; --muted:#586277; --line:#e0e7f1; --paper:#f5f8fc; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; width: 320px; margin: 0; padding: 16px; color: var(--ink); background: var(--paper); }
+    h1 { font-size: 15px; margin: 0 0 2px; color: var(--navy); }
+    .sub { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: #3a475e; margin: 10px 0 4px; }
+    input { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 13px; }
+    button { width: 100%; margin-top: 12px; border: 0; border-radius: 8px; padding: 9px; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .primary { background: var(--navy); color: #fff; }
+    .ghost { background: #fff; color: var(--navy); border: 1px solid var(--line); }
+    .status { font-size: 12px; margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: #fff; border: 1px solid var(--line); }
+    .warn { font-size: 12px; margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: #fdf3e7; border: 1px solid #e8c9a0; color: #7a4a12; }
+    .warn button { margin-top: 8px; background: var(--navy); color: #fff; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .on { background: var(--green-deep); } .off { background: #b3261e; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <h1>AI Compliance Capture</h1>
+  <p class="sub">Logs your AI prompts &amp; outputs to your firm's supervision record.</p>
+
+  <div id="setup">
+    <label for="code">Connect code</label>
+    <input id="code" type="password" placeholder="paste from app → Connections" />
+    <button class="primary" id="connect">Connect</button>
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer;font-size:11px;color:var(--muted)">Advanced: raw access token (expires ~hourly)</summary>
+      <label for="origin">AI Compliance app URL</label>
+      <input id="origin" type="url" placeholder="https://app.example.com" />
+      <label for="token">Access token</label>
+      <input id="token" type="password" placeholder="paste from app → Connections" />
+      <button class="ghost" id="save">Connect with token</button>
+    </details>
+  </div>
+  <div id="connected" hidden>
+    <div class="status"><span class="dot on"></span> Connected as <span id="email"></span> · stays connected (auto-refresh)</div>
+    <button class="ghost" id="disconnect">Disconnect</button>
+  </div>
+  <button class="ghost" id="syncnow">Sync now</button>
+
+  <div class="warn" id="access" hidden>
+    Capture is off: this browser hasn't granted access to the AI sites yet.
+    <button id="grant">Allow access to AI sites</button>
+  </div>
+
+  <div class="status" id="status"><span class="dot off"></span> Not connected</div>
+  <p class="hint">Get a connect code from the AI Compliance app under Connections. It works once — after connecting, the extension keeps its own session and stays signed in. Captured events sync about 30 seconds after each chat turn.</p>
+
+  <script src="auth.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

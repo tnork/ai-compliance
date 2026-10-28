@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Compliance Logger</title>
+  <style>
+    :root {
+      --navy: #0f1c3f; --navy-2: #17264f; --green: #34e0a1; --green-deep: #0a7d55;
+      --ink: #0f1c3f; --muted: #5b6b86; --line: #e2e8f2; --bg: #f6f9fc; --card: #fff;
+      --warn-bg: #fdecec; --warn-ink: #a12a2a; --ok-bg: #e6f7ef; --ok-ink: #0a7d55;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); font-size: 14px; }
+    header { background: var(--navy); color: #fff; padding: 16px 20px; }
+    header .brand { font-weight: 800; letter-spacing: -0.02em; font-size: 16px; }
+    header .brand span { color: var(--green); }
+    header .sub { color: #aebfe0; font-size: 12px; margin-top: 2px; }
+    main { padding: 18px 20px 24px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 10px; }
+    label { display: block; font-weight: 600; font-size: 12px; margin: 10px 0 4px; }
+    input[type=text], textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: var(--mono); font-size: 12px; background: #fff; color: var(--ink); }
+    input:focus, textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(52,224,161,.18); }
+    textarea { resize: vertical; min-height: 66px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; }
+    .row + .row { border-top: 1px solid var(--line); }
+    .row .k { color: var(--muted); }
+    .row .v { font-weight: 600; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .pill.ok { background: var(--ok-bg); color: var(--ok-ink); }
+    .pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
+    .pill.neutral { background: #eef2f9; color: var(--muted); }
+    .toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .actions { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+    button { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 8px; padding: 8px 14px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    button.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+    button.green { background: var(--green); color: #08251a; border-color: var(--green); }
+    button:disabled { opacity: .5; cursor: default; }
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 8px 0 0; }
+    a { color: var(--green-deep); cursor: pointer; }
+    .msg { margin-top: 10px; padding: 8px 10px; border-radius: 8px; font-size: 12px; display: none; }
+    .msg.show { display: block; }
+    .msg.ok { background: var(--ok-bg); color: var(--ok-ink); }
+    .msg.err { background: var(--warn-bg); color: var(--warn-ink); }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:11px">
+      <svg viewBox="0 0 120 140" width="27" height="31" aria-hidden="true" style="flex:0 0 auto">
+        <path d="M60 8 L106 21 L106 64 C106 95 86 119 60 131 C34 119 14 95 14 64 L14 21 Z" fill="#0f1c3f" stroke="#34e0a1" stroke-width="2.5"/>
+        <line x1="35" y1="47" x2="59" y2="47" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+        <line x1="35" y1="59" x2="59" y2="59" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".62"/>
+        <line x1="35" y1="71" x2="51" y2="71" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".42"/>
+        <path d="M38 85 L55 102 L92 51" fill="none" stroke="#34e0a1" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="brand">AI Compliance Logger</div>
+        <div class="sub">Captures local AI agent transcripts into your supervision record</div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      <h2>Status</h2>
+      <div class="row"><span class="k">Connection</span><span class="v" id="st-conn">—</span></div>
+      <div class="row"><span class="k">Pending to sync</span><span class="v" id="st-pending">0</span></div>
+      <div class="row"><span class="k">Last sync</span><span class="v" id="st-sync">—</span></div>
+      <div class="row"><span class="k">Content review</span><span class="v" id="st-retain">—</span></div>
+      <div class="actions" style="margin-top:12px">
+        <button class="green" id="btn-sync">Sync now</button>
+        <button id="btn-pause">Pause</button>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Connection</h2>
+      <div id="conn-connected" style="display:none">
+        <div class="row"><span class="k">Connected as</span><span class="v" id="conn-email">—</span></div>
+        <p class="hint">This device holds its own session and refreshes it automatically — connect once, it stays connected.</p>
+        <div class="actions"><button id="btn-disconnect">Disconnect</button></div>
+      </div>
+      <div id="conn-setup">
+        <label for="code">Connect code <span style="font-weight:400;color:var(--muted)">(app → Connections → Desktop logger → Generate connect code)</span></label>
+        <textarea id="code" placeholder="paste your connect code (starts with aic1.)"></textarea>
+        <div class="actions"><button class="primary" id="btn-connect">Connect</button></div>
+        <p class="hint">The code works once and expires quickly — treat it like a password. After connecting, this device stays connected on its own.</p>
+        <details style="margin-top:10px">
+          <summary style="cursor:pointer;color:var(--muted);font-size:12px">Advanced: connect with a raw access token (expires ~hourly)</summary>
+          <label for="origin">App URL</label>
+          <input type="text" id="origin" placeholder="http://localhost:3000 or https://app.example.com" />
+          <label for="token">Access token</label>
+          <textarea id="token" placeholder="paste your access token"></textarea>
+          <div class="actions"><button id="btn-save">Save connection</button></div>
+        </details>
+      </div>
+      <label class="row" style="margin-top:8px">
+        <span class="toggle"><input type="checkbox" id="login-toggle"> Start automatically at login</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Sources</h2>
+      <div id="sources"></div>
+      <p class="hint">Only <b>new</b> activity after the logger starts is captured — your existing transcript history is not backfilled. A turn = your prompt plus the assistant's reply; internal tool steps are excluded.</p>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id)
+    let saving = false
+
+    function fmt(ts) { try { return ts ? new Date(ts).toLocaleString() : '—' } catch { return '—' } }
+
+    function render(state) {
+      const c = state.config, s = state.status, conn = state.connection || { mode: 'none' }
+      const connected = conn.mode !== 'none' && c.appOrigin
+      $('st-conn').innerHTML = !connected
+        ? '<span class="pill warn">not connected</span>'
+        : c.paused ? '<span class="pill neutral">paused</span>'
+        : conn.mode === 'code' ? '<span class="pill ok">watching · auto-refresh</span>' : '<span class="pill ok">watching</span>'
+      $('st-pending').textContent = s.pending
+      $('st-sync').innerHTML = s.lastError ? `<span class="pill warn">${s.lastError}</span>` : fmt(s.lastSyncAt)
+      $('st-retain').innerHTML = s.retainRaw ? '<span class="pill ok">retained (encrypted)</span>' : '<span class="pill neutral">hash-only</span>'
+      $('btn-pause').textContent = c.paused ? 'Resume' : 'Pause'
+      $('conn-connected').style.display = conn.mode === 'code' ? 'block' : 'none'
+      $('conn-setup').style.display = conn.mode === 'code' ? 'none' : 'block'
+      $('conn-email').textContent = conn.email || 'this account'
+      $('login-toggle').checked = c.launchAtLogin !== false
+      if (document.activeElement !== $('origin')) $('origin').value = c.appOrigin || ''
+      if (document.activeElement !== $('token')) $('token').value = c.token || ''
+      const box = $('sources'); box.innerHTML = ''
+      for (const src of state.sources) {
+        const wrap = document.createElement('label'); wrap.className = 'row'
+        const on = c.sources[src.key] !== false
+        wrap.innerHTML = `<span class="toggle"><input type="checkbox" ${on ? 'checked' : ''} data-src="${src.key}"> ${src.label}</span>` +
+          `<span class="pill ${src.present ? 'ok' : 'neutral'}">${src.present ? 'found' : 'not installed'}</span>`
+        wrap.querySelector('input').addEventListener('change', (e) => {
+          window.aic.saveConfig({ sources: { [src.key]: e.target.checked } }).then(render)
+        })
+        box.appendChild(wrap)
+      }
+    }
+
+    function flash(text, ok) {
+      const m = $('msg'); m.textContent = text; m.className = 'msg show ' + (ok ? 'ok' : 'err')
+      setTimeout(() => { m.className = 'msg' }, 4000)
+    }
+
+    $('btn-connect').addEventListener('click', async () => {
+      if (saving) return; saving = true
+      $('btn-connect').disabled = true
+      const state = await window.aic.connect($('code').value)
+      render(state); saving = false; $('btn-connect').disabled = false
+      if (state.connectError) { flash(state.connectError, false); return }
+      $('code').value = ''
+      flash('Connected — this device now stays connected on its own.', true)
+    })
+    $('btn-disconnect').addEventListener('click', async () => {
+      render(await window.aic.disconnect())
+      flash('Disconnected.', true)
+    })
+    $('login-toggle').addEventListener('change', async (e) => {
+      render(await window.aic.saveConfig({ launchAtLogin: e.target.checked }))
+    })
+    $('btn-save').addEventListener('click', async () => {
+      if (saving) return; saving = true
+      const state = await window.aic.saveConfig({ appOrigin: $('origin').value.trim(), token: $('token').value.trim() })
+      render(state); saving = false
+      if (state.originError) { flash(state.originError, false); return }
+      flash('Connection saved.', true)
+      const r = await window.aic.syncNow(); render(r.state)
+    })
+    $('btn-sync').addEventListener('click', async () => {
+      $('btn-sync').disabled = true
+      const r = await window.aic.syncNow(); render(r.state)
+      flash(r.result.ok ? `Synced (${r.result.uploaded ?? 0} uploaded).` : `Sync failed: ${r.result.reason}`, r.result.ok)
+      $('btn-sync').disabled = false
+    })
+    $('btn-pause').addEventListener('click', async () => {
+      const cur = await window.aic.getState()
+      render(await window.aic.saveConfig({ paused: !cur.config.paused }))
+    })
+
+    window.aic.onState(render)
+    window.aic.getState().then(render)
+  </script>
+</body>
+</html>

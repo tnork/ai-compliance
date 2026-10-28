@@ -1,0 +1,647 @@
+<!doctype html>
+<!--
+  AI Compliance - Phase 0 Policy Generator (validation wedge)
+  Self-contained: no build step, no deps, no auth/DB. Open by double-click or host on any static host.
+  Generates a Circular-230-mapped AI Use Policy DRAFT and prints to PDF via the browser (native).
+  Regulatory content is limited to verified federal (IRS OPR / Circular 230) facts. No state-law claims in tax copy.
+  Claims discipline: "evidence, not assurance"; DRAFT - pending attorney review; not legal/tax advice.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Compliance - Circular 230 AI Policy Generator (DRAFT)</title>
+<meta name="description" content="Generate a free, Circular-230-mapped AI-use policy draft for your tax firm - approved tools, data handling, human review, and shadow-AI rules. Not legal or tax advice.">
+<meta property="og:title" content="AI Compliance - Circular 230 AI Policy Generator (DRAFT)">
+<meta property="og:description" content="Generate a free, Circular-230-mapped AI-use policy draft for your tax firm. Not legal or tax advice.">
+<meta property="og:type" content="website">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0b1533">
+<link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../images/favicon-16.png">
+<link rel="icon" href="../images/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="../images/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Brand tokens mirror the canonical set in ../DESIGN.md . */
+  :root{
+    --navy:#0b1533; --navy2:#16264d; --ink:#141c2e; --muted:#586277;
+    --line:#e0e7f1; --bg:#f5f8fc; --green:#34e0a1; --green-deep:#0a7d55; --blue-ink:#186099; --cyan:#5bd0ec;
+    --warn-bg:#fef2d4; --warn-line:#f0d28a; --warn-ink:#7a5600;
+    --radius:10px;
+    --font-sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  :focus-visible{outline:3px solid var(--cyan);outline-offset:2px;border-radius:4px} /* keyboard ring - matches the landing */
+  input[type="checkbox"],input[type="radio"]{accent-color:var(--navy)} /* native controls in brand navy, not UA blue */
+  .amp{font-family:Arial,Helvetica,sans-serif}   /* standard ampersand glyph; rest stays Archivo */
+  body{margin:0;font-family:var(--font-sans);font-size:15px;line-height:1.55;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+  header.app{background:var(--navy);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  header.app .brand{display:flex;align-items:center;gap:11px;color:#fff;text-decoration:none;border-radius:8px}
+  header.app .wordmark{font-weight:900;font-size:21px;line-height:1;letter-spacing:-.03em;color:#fff}
+  header.app .wordmark .b4{color:var(--green)}
+  header.app .logo{width:40px;height:40px;object-fit:contain;display:block}
+  header.app .divider{width:1px;height:22px;background:rgba(255,255,255,.18);margin:0 2px}
+  header.app .tag{font-family:var(--font-mono);color:#aeb8cc;font-size:13px;letter-spacing:.03em}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:22px;max-width:1200px;margin:22px auto;padding:0 20px}
+  .wrap>section{min-width:0}   /* allow grid tracks to shrink; prevents mobile horizontal overflow */
+  @media(max-width:880px){.wrap{grid-template-columns:1fr}}
+  @media(max-width:480px){
+    .doc{padding:26px 20px}
+    /* 16px inputs prevent iOS Safari auto-zoom on focus; roomier tap height */
+    input[type=text],input[type=date],select{font-size:16px;padding:11px 12px}
+  }
+  .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .panel h2{margin:0 0 14px;font-family:var(--font-mono);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--blue-ink)}
+  label,.glabel{display:block;font-weight:600;font-size:13px;margin:14px 0 5px}
+  input[type=text],input[type=date],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font:inherit;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(91,208,236,.25)} /* matches the landing form focus (Codex P2: this rule outranks :focus-visible) */
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:6px}
+  .checks label{display:flex;align-items:center;gap:7px;font-weight:400;margin:2px 0;font-size:14px}
+  .checks input{width:auto}
+  .toolrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .toolrow input[type=text]{flex:1;margin:0}
+  .toolrow button{padding:9px 14px;flex:0 0 auto}
+  #tools-other label{display:flex;align-items:center;gap:7px;font-weight:400;margin:6px 0 0;font-size:14px}
+  #tools-other input{width:auto}
+  /* "?" explainer - ports the app's InfoTip (hover shows, click pins, Escape closes) */
+  .tip{position:relative;display:inline-block;margin-left:6px;vertical-align:middle}
+  .tip>button{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--blue-ink);background:transparent;color:var(--blue-ink);font-weight:800;font-size:11px;line-height:1;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+  .tip .tipbody{position:absolute;z-index:40;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:min(360px,82vw);max-height:60vh;overflow-y:auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(15,28,63,.14);padding:12px 14px;font-size:13px;line-height:1.55;color:var(--ink);font-weight:400;text-align:left;white-space:normal;display:none}
+  .tip.open .tipbody{display:block}
+  .tipbody .tp{display:block;margin-bottom:8px}
+  .tipbody .tp:last-child{margin-bottom:0}
+  @media(max-width:520px){.tip .tipbody{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:88vw}} /* centered sheet on small screens - an anchored popover overflows the viewport */
+  .radios{display:flex;gap:16px;margin-top:6px}
+  .radios label{display:flex;align-items:center;gap:6px;font-weight:400;margin:0}
+  .radios input{width:auto}
+  .radios.col{flex-direction:column;gap:6px;align-items:flex-start}
+  .hint{font-size:12px;color:var(--muted);margin:2px 0 4px;font-weight:400}
+  /* Send-for-review modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(11,21,51,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .modal-backdrop[hidden]{display:none}
+  .modal{background:#fff;border-radius:14px;max-width:460px;width:100%;padding:26px 26px 22px;position:relative;box-shadow:0 24px 60px rgba(11,21,51,.35);max-height:90vh;overflow-y:auto}
+  .modal h3{margin:0 0 6px;font-size:19px}
+  .modal .modal-sub{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .modal-x{position:absolute;top:8px;right:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;font-size:24px;line-height:1;color:var(--muted);cursor:pointer;border-radius:8px}
+  .modal-x:hover{background:#eef1f7;color:var(--ink)}
+  .modal .rpanel{margin-top:14px}
+  .modal label{margin-top:12px}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+  .modal-actions button{padding:10px 18px}
+  .modal-actions .primary{flex:0 0 auto}
+  .atty{border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-top:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+  .atty:hover{border-color:var(--navy)}
+  .atty.sel{border-color:var(--navy);background:#f5f8ff}
+  .atty input{margin-top:3px}
+  .atty .an{font-weight:600;font-size:14px}
+  .atty .am{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .rm-check{width:46px;height:46px;border-radius:50%;background:var(--green);color:var(--navy);font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 0 10px}
+  .btnrow{display:flex;gap:10px;margin-top:20px}
+  button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:11px 16px;cursor:pointer}
+  .primary{background:var(--navy);color:#fff;flex:1}
+  .primary:hover{background:var(--navy2)}
+  .ghost{background:#eef1f7;color:var(--ink)}
+  .ghost:hover{background:#e2e7f0}
+  .disclaimer{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:8px;padding:11px 13px;font-size:12.5px;margin-top:16px}
+  /* Document preview */
+  .doc{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:44px 52px;min-height:400px;position:relative;overflow:hidden}
+  .doc.editing{outline:2px dashed var(--blue-ink);outline-offset:4px;background:#fbfdff}
+  .doc.editing:focus{outline:2px dashed var(--blue-ink)}
+  .doc.editing [contenteditable]:focus{outline:none}
+  #editStatus{font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.02em;opacity:0;transition:opacity .18s}
+  #editStatus.show{opacity:1}
+  #editStatus.hint{color:var(--blue-ink)}
+  #editStatus.saved{color:var(--green-deep)}
+  .doc .watermark{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+  .doc .watermark span{font-size:78px;font-weight:800;color:rgba(11,21,51,.05);transform:rotate(-28deg);letter-spacing:6px;white-space:nowrap}
+  .doc h1{font-size:23px;margin:0 0 4px}
+  .doc .sub{color:var(--muted);font-size:13px;margin-bottom:2px}
+  .doc .draftbar{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);padding:10px 12px;border-radius:6px;font-size:12.5px;margin:16px 0 22px;font-weight:600}
+  .doc h2{font-size:16px;margin:26px 0 6px;padding-bottom:5px;border-bottom:2px solid var(--navy);display:flow-root} /* contain the floated cite pill so paragraphs never wrap around it (mobile) */
+  .doc h2 .cite{float:right;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--muted);background:#f0f3f9;padding:2px 8px;border-radius:20px;border:1px solid var(--line)}
+  .doc p{margin:8px 0}
+  .doc ul{margin:8px 0 8px 4px;padding-left:20px}
+  .doc li{margin:4px 0}
+  .doc .sig{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .doc .sig .line{border-top:1px solid #333;padding-top:5px;font-size:12.5px;color:var(--muted)}
+  .doc .footer{margin-top:34px;border-top:1px solid var(--line);padding-top:12px;font-size:11px;color:var(--muted)}
+  .placeholder{color:var(--muted);text-align:center;padding:80px 20px;font-style:italic}
+  /* Print: only the document */
+  @media print{
+    body{background:#fff}
+    header.app,.panel.form,.noprint{display:none!important}
+    .wrap{display:block;margin:0;padding:0;max-width:none}
+    .doc{border:0;border-radius:0;padding:0;min-height:0}
+    .doc h2{page-break-after:avoid}
+    .doc h2 .cite{border-color:#ccc}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <a class="brand" href="./" aria-label="AI Compliance home">
+    <img class="logo" src="../images/logo-reversed.svg" alt="">
+    <span class="wordmark">AI Compliance</span>
+  </a>
+  <span class="divider" aria-hidden="true"></span>
+  <div class="tag">AI Use Policy Generator</div>
+</header>
+
+<div class="wrap">
+  <!-- FORM -->
+  <section class="panel form noprint">
+    <h2>Firm details</h2>
+    <label for="firm">Firm name</label>
+    <input type="text" id="firm" placeholder="e.g. Bluegrass Tax Advisors, PLLC">
+
+    <label for="officer">AI responsible person / firm officer</label>
+    <input type="text" id="officer" placeholder="e.g. Jane Smith, CPA (Managing Partner)">
+
+    <label for="size">Firm size</label>
+    <select id="size">
+      <option value="a solo practitioner">Solo practitioner</option>
+      <option value="a small firm (2-10 staff)" selected>Small firm (2-10 staff)</option>
+      <option value="a firm (11-20 staff)">Firm (11-20 staff)</option>
+      <option value="a multi-office firm (20+ staff)">Multi-office firm (20+ staff)</option>
+    </select>
+
+    <div class="glabel" id="ptypes-lbl">Practitioner types at the firm</div>
+    <div class="checks" id="ptypes" role="group" aria-labelledby="ptypes-lbl">
+      <label><input type="checkbox" value="CPAs" checked>CPAs</label>
+      <label><input type="checkbox" value="Enrolled Agents">Enrolled Agents</label>
+      <label><input type="checkbox" value="attorneys">Attorneys</label>
+      <label><input type="checkbox" value="unenrolled preparers">Unenrolled preparers</label>
+    </div>
+
+    <div class="glabel" id="tools-lbl">AI tools used for firm work</div>
+    <div class="hint">Include tools staff use on <strong>personal accounts</strong> and personal-device local LLMs - not just firm-provided ones.</div>
+    <!-- DOM order renders row-major in the 2-col grid: left column ChatGPT/Claude/
+         Grok, right column Gemini above Copilot (founder-specified, matches the app form). -->
+    <div class="checks" id="tools" role="group" aria-labelledby="tools-lbl">
+      <label><input type="checkbox" value="ChatGPT (OpenAI)" checked>ChatGPT</label>
+      <label><input type="checkbox" value="Google Gemini">Gemini</label>
+      <label><input type="checkbox" value="Claude (Anthropic)">Claude</label>
+      <label><input type="checkbox" value="Microsoft Copilot">MS Copilot</label>
+      <label><input type="checkbox" value="Grok (xAI)">Grok</label>
+    </div>
+    <div id="tools-other" role="group" aria-label="Other or Local AI systems"></div>
+    <div class="toolrow">
+      <input type="text" id="tool-other-txt" maxlength="120" placeholder="Other or Local - e.g. Llama 3 via LM Studio" aria-label="Other or Local AI system">
+      <button type="button" class="ghost" id="tool-other-add" disabled>Save</button>
+    </div>
+    <div class="hint">Any other AI system, including local LLMs - Save each one to include it in the policy. Saved entries appear above with a fresh field below.</div>
+
+    <div class="glabel" id="byo-lbl">Personal-account / personal-device AI use for client work</div>
+    <div class="radios col" id="byo" role="radiogroup" aria-labelledby="byo-lbl">
+      <label><input type="radio" name="byo" value="watcher" checked>Allowed if the AI monitoring agent (“watcher”) is installed</label>
+      <label><input type="radio" name="byo" value="prohibited">Prohibited - firm-approved tools only</label>
+      <label><input type="radio" name="byo" value="approved"><span>Allowed only if approved <span class="amp">&</span> logged</span></label>
+      <label><input type="radio" name="byo" value="ungoverned">Happening informally / not yet governed</label>
+    </div>
+
+    <div class="glabel" id="pii-lbl">Is client PII/data entered into any AI tool?</div>
+    <div class="radios" id="pii" role="radiogroup" aria-labelledby="pii-lbl">
+      <label><input type="radio" name="pii" value="no" checked>No / not allowed</label>
+      <label><input type="radio" name="pii" value="yes">Yes, in approved tools</label>
+    </div>
+
+    <!-- The "?" tip sits OUTSIDE the span the radiogroup is labelled by, so the
+         explainer text never pollutes the group's accessible name. Copy is the
+         canonical WispTip (web/components/WispTip.tsx) - keep the two in sync. -->
+    <div class="glabel"><span id="wisp-lbl">Does the firm have a WISP (Pub 5708)?</span><span class="tip" id="wispTip"><button type="button" aria-label="What is a WISP?" aria-expanded="false">?</button><span class="tipbody" role="tooltip"><span class="tp"><strong>WISP stands for Written Information Security Plan.</strong></span><span class="tp">It’s a written document that federal law requires every professional tax preparer to have. The FTC Safeguards Rule (under the Gramm-Leach-Bliley Act) treats tax preparers as “financial institutions,” so anyone with a PTIN must maintain a WISP describing how they protect client data - access controls, encryption, incident response, employee training, and so on. The IRS confirms this on the annual PTIN renewal.</span><span class="tp">Failure to comply with the Safeguards Rule can carry FTC penalties of roughly $53,088 per violation.</span><span class="tp">A firm’s WISP has to account for where client data flows. AI tools are a new data flow, so supervised, documented AI use (approved tools, PII rules, personal-account boundaries) is what keeps the WISP honest - which is why this policy’s PII-handling and shadow-AI sections map to it.</span><span class="tp">WISP obligations are about data security (§7216/§6713 disclosure penalties, FTC enforcement), a separate legal track from Circular 230’s supervision duties (§§10.22/10.36) - AI Compliance’s record covers evidence for both.</span></span></span></div>
+    <div class="radios" id="wisp" role="radiogroup" aria-labelledby="wisp-lbl">
+      <label><input type="radio" name="wisp" value="yes" checked>Yes</label>
+      <label><input type="radio" name="wisp" value="no">Not yet</label>
+    </div>
+
+    <!-- Acceptable Use Policy - optional intake, mirrors the WISP "?" pattern.
+         Honesty guardrail: AI Compliance stores/versions the firm's own documents but never
+         generates one or judges legal adequacy. Keep in sync with web/components/AupTip.tsx. -->
+    <div class="glabel"><span id="aup-lbl">Does the firm have an Acceptable Use Policy (AUP)?</span><span class="tip" id="aupTip"><button type="button" aria-label="What is an Acceptable Use Policy?" aria-expanded="false">?</button><span class="tipbody" role="tooltip"><span class="tp"><strong>AUP stands for Acceptable Use Policy.</strong></span><span class="tp">It’s a written document that sets the rules for how your staff may use the firm’s technology - computers, email, networks, the internet, and increasingly AI tools. It usually spells out what’s allowed, what’s prohibited, and each person’s responsibility for protecting firm and client information.</span><span class="tp">It’s different from a WISP: a WISP is a data-security plan federal law requires every tax preparer to have, while an Acceptable Use Policy is a broader governance document many firms choose to keep. An AI-use policy often works alongside both.</span><span class="tp">In AI Compliance you can upload your Acceptable Use Policy (and other firm documents) under Policies, keep a version history, and have staff acknowledge each version. It’s optional - not required to use AI Compliance.</span><span class="tp">AI Compliance doesn’t write your AUP for you or judge whether a given policy is adequate. Your policies and their legal sufficiency remain your firm’s and your counsel’s responsibility.</span></span></span></div>
+    <div class="radios" id="aup" role="radiogroup" aria-labelledby="aup-lbl">
+      <label><input type="radio" name="aup" value="yes">Yes</label>
+      <label><input type="radio" name="aup" value="no" checked>Not yet</label>
+    </div>
+
+    <label for="eff">Effective date</label>
+    <input type="date" id="eff">
+
+    <div class="btnrow">
+      <button class="primary" id="gen">Generate policy</button>
+    </div>
+    <div class="btnrow">
+      <button class="ghost noprint" id="edit" disabled>Edit policy</button>
+      <button class="ghost noprint" id="print" disabled>Download PDF</button>
+      <button class="ghost noprint" id="word" disabled>Download Word</button>
+    </div>
+    <div class="btnrow" style="margin-top:6px"><span id="editStatus" class="noprint" aria-live="polite"></span></div>
+
+    <div class="disclaimer">
+      <strong>DRAFT - pending attorney review.</strong> This generates a template for discussion, grounded in
+      IRS OPR Alert 2026-19 <span class="amp">&</span> Circular 230. It is <strong>not legal or tax advice</strong> and must be
+      reviewed by qualified counsel before adoption. AI Compliance documents supervision - it does not guarantee compliance.
+    </div>
+
+    <button class="primary noprint" id="sendReview" disabled style="width:100%;margin-top:12px">Send to Attorney for Review</button>
+  </section>
+
+  <!-- PREVIEW -->
+  <section class="doc" id="doc">
+    <div class="placeholder">Fill in your firm details and click <strong>Generate policy</strong> to preview the Circular&nbsp;230 AI Use Policy draft.</div>
+  </section>
+</div>
+
+<!-- SEND-FOR-REVIEW LIGHTBOX -->
+<div class="modal-backdrop noprint" id="reviewModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rmTitle">
+    <button class="modal-x" id="rmClose" aria-label="Close">&times;</button>
+
+    <div id="rmForm">
+      <h3 id="rmTitle">Send policy for attorney review</h3>
+      <p class="modal-sub">A licensed attorney reviews your draft AI-use policy and signs off - strengthening your Circular&nbsp;230 supervision record (§10.36).</p>
+
+      <div class="radios col" id="reviewMode">
+        <label><input type="radio" name="rmode" value="mine" checked>Use my attorney</label>
+        <label><input type="radio" name="rmode" value="find">Find an AI-specialized attorney</label>
+      </div>
+
+      <!-- Use my attorney -->
+      <div id="panel-mine" class="rpanel">
+        <label for="atName">Attorney name</label>
+        <input type="text" id="atName" placeholder="e.g. Dana Reyes, JD">
+        <label for="atEmail">Attorney email</label>
+        <input type="text" id="atEmail" placeholder="e.g. dana@reyeslaw.com">
+        <label for="atFirm">Law firm</label>
+        <input type="text" id="atFirm" placeholder="e.g. Reyes Professional Responsibility Law">
+      </div>
+
+      <!-- Find an attorney -->
+      <div id="panel-find" class="rpanel" hidden>
+        <p class="hint" style="margin-top:2px">AI <span class="amp">&</span> professional-responsibility attorneys from the AI Compliance reviewer network. <em>Sample directory - illustrative only.</em></p>
+        <div id="attyList"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost" id="rmCancel">Cancel</button>
+        <button class="primary" id="rmSend" disabled>Send for review</button>
+      </div>
+    </div>
+
+    <div id="rmSuccess" hidden>
+      <div class="rm-check">&#10003;</div>
+      <h3>Ready to share for review</h3>
+      <p class="modal-sub" id="rmSuccessMsg"></p>
+      <p class="hint">Prototype: delivery is mocked in this validation build. In the product, the attorney receives a secure link, reviews, and their sign-off is added to your supervision record.</p>
+      <div class="modal-actions"><button class="primary" id="rmDone">Done</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(s){return document.querySelector(s)};
+  // default effective date = today
+  var t=new Date(); $('#eff').value = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+
+  function checked(sel){return Array.prototype.slice.call(document.querySelectorAll(sel+' input:checked')).map(function(c){return c.value})}
+  function radio(name){var el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value:''}
+  function list(arr){
+    if(!arr.length) return 'the applicable tools';
+    if(arr.length===1) return arr[0];
+    return arr.slice(0,-1).join(', ')+' and '+arr[arr.length-1];
+  }
+  function fmtDate(v){ if(!v) return '__________'; var d=new Date(v+'T00:00:00'); return d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+
+  function generate(){
+    var firm = esc($('#firm').value.trim()) || '[Firm Name]';
+    var officer = esc($('#officer').value.trim()) || '[Designated AI Responsible Person]';
+    var size = $('#size').value;
+    var ptypes = checked('#ptypes'); var ptxt = ptypes.length? list(ptypes) : 'all personnel';
+    var tools = checked('#tools').concat(checked('#tools-other'));
+    var pii = radio('pii'); var wisp = radio('wisp'); var byo = radio('byo'); var aup = radio('aup');
+    var eff = fmtDate($('#eff').value);
+
+    // Optional: reference the firm's existing Acceptable Use Policy. AI Compliance does not
+    // generate an AUP - this only notes that the AI policy supplements one if it exists.
+    var aupClause = aup==='yes'
+      ? '<p>Where the firm maintains a general Acceptable Use Policy (AUP) governing its technology and systems, this AI-use policy supplements that AUP; both apply to AI tools used in client work.</p>'
+      : '';
+
+    var piiClause = pii==='yes'
+      ? 'Client personally identifiable information (PII) and confidential taxpayer data may be entered <strong>only</strong> into tools on the approved-tool register that have been vetted for that purpose. Entry of client data into any non-approved tool is prohibited.'
+      : 'Client personally identifiable information (PII) and confidential taxpayer data <strong>must not</strong> be entered into any general-purpose AI tool. Only de-identified or non-client information may be used unless a tool has been specifically approved for client data.';
+
+    var byoClause;
+    if(byo==='watcher'){
+      byoClause = 'Staff may use their own AI accounts and personal-device tools (including local LLMs) for firm work <strong>provided that</strong> the firm’s approved AI monitoring agent (the "watcher") is installed and active on the account, browser, or device used, so that every AI-assisted work product is automatically captured into the firm’s supervision record. Client personally identifiable information may be entered only where the specific tool is approved for that data class under Section 2 - the monitoring agent documents that use is supervised but does not by itself make a personal consumer account appropriate for confidential client data. A staff member whose monitoring agent is not installed and active must not use a personal account or device for client work.';
+    } else if(byo==='prohibited'){
+      byoClause = 'Staff <strong>must not</strong> use personal AI accounts (for example, a personal ChatGPT, Claude, Gemini, or Grok subscription) or personal-device AI tools, including locally-run LLMs, for any client work. Only firm-approved tools on the register above may be used.';
+    } else if(byo==='approved'){
+      byoClause = 'Use of a personal AI account or personal-device tool (including a local LLM) for client work is permitted <strong>only</strong> where that specific tool has been vetted and added to the approved-tool register above, and each such use is recorded (Section 7). The data-handling rules in Section 2 apply in full.';
+    } else {
+      byoClause = 'The firm is bringing informal ("shadow") AI use under this policy. Until a tool is vetted and approved, staff <strong>must not</strong> use personal AI accounts or personal-device tools (including local LLMs) for client work. Every staff member must disclose any AI tool they currently use for firm work so it can be assessed and either approved or discontinued.';
+    }
+
+    var wispClause = wisp==='yes'
+      ? 'The firm maintains a Written Information Security Plan (WISP) under the FTC Safeguards Rule (IRS Pub 5708). This AI policy operates as an addendum to that WISP; AI tools are treated as information systems subject to it, and all personnel must read and acknowledge the WISP.'
+      : 'The firm is establishing a Written Information Security Plan (WISP) under the FTC Safeguards Rule (IRS Pub 5708). AI tools must be incorporated into that WISP as information systems once adopted, and all personnel must read and acknowledge it.';
+
+    var toolLines = tools.length
+      ? '<ul>'+tools.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'
+      : '<p>No AI tools are currently approved. Any AI tool must be vetted and approved before use in client work.</p>';
+
+    var html = ''
+    + '<div class="watermark" contenteditable="false"><span>DRAFT · NOT LEGAL ADVICE</span></div>'
+    + '<h1>'+firm+' - Artificial Intelligence Use Policy</h1>'
+    + '<div class="sub">Circular 230 · Federal Tax Practice · Version 1.0 (DRAFT)</div>'
+    + '<div class="sub">Effective: '+eff+' · Responsible person: '+officer+'</div>'
+    + '<div class="draftbar">DRAFT - PENDING ATTORNEY REVIEW. Template only; not legal or tax advice. Review with qualified counsel before adoption.</div>'
+
+    + '<h2>1. Purpose &amp; Scope <span class="cite">OPR Alert 2026-19</span></h2>'
+    + '<p>This policy governs the use of artificial intelligence (AI) tools in the federal tax practice of '+firm+', '+size+'. It responds to IRS Office of Professional Responsibility Alert 2026-19, <em>Introductory Guidelines for Responsible AI Use in Federal Tax Practice</em> (June 24, 2026), which applies the duties of Treasury Circular 230 to AI use. It applies to '+ptxt+' and all staff who use AI in connection with client work, whether the tool is firm-provided or a staff member’s personal account or device.</p>'
+    + '<p>AI is a tool that supports - but never substitutes for - the professional judgment of a qualified practitioner. Final responsibility for all work product rests with the responsible professional.</p>'
+
+    + '<h2>2. Approved Tools &amp; Data Handling <span class="cite">§10.36 · WISP</span></h2>'
+    + '<p>The following AI tools are approved for use, subject to the data-handling rules below:</p>'
+    + toolLines
+    + '<p>'+piiClause+'</p>'
+    + '<p>'+wispClause+' Confidentiality obligations under Circular 230 §10.51 and IRC §§6713 and 7216 apply to all AI use; unauthorized disclosure of taxpayer information carries civil and criminal penalties.</p>'
+    + '<p>No AI tool may be introduced into client work until it has been vetted (data handling, retention, training-data use) and added to the approved-tool register by '+officer+'.</p>'
+
+    + '<h2>3. Personal Accounts, Personal Devices &amp; Shadow AI <span class="cite">§10.36 · §10.51 · WISP</span></h2>'
+    + '<p>The firm’s supervision duty under Circular 230 §10.36 covers <em>all</em> AI used in client work - including tools a staff member accesses through a personal subscription or runs on a personal device. Personal consumer accounts typically lack the firm’s security controls and data-handling terms, so entering client information into them can breach confidentiality obligations under Circular 230 §10.51, IRC §§6713 and 7216, and the firm’s WISP.</p>'
+    + '<p>'+byoClause+'</p>'
+
+    + '<h2>4. Human Review &amp; Due Diligence <span class="cite">§10.22</span></h2>'
+    + '<p>Consistent with the diligence duty of Circular 230 §10.22, a qualified person must review and verify every AI-assisted work product before it is relied upon or delivered to a client or the IRS. Reviewers must independently confirm:</p>'
+    + '<ul><li>factual accuracy of any statements produced by the AI;</li><li>the existence and correctness of any citations to authority;</li><li>the accuracy of any calculations; and</li><li>that the output reflects the client’s actual facts and circumstances.</li></ul>'
+    + '<p>Reliance on AI output without independent human verification is prohibited. The reviewer records what was checked, what was edited, and confirms the output as verified.</p>'
+
+    + '<h2>5. Competence &amp; Training <span class="cite">§10.35</span></h2>'
+    + '<p>Under the competence duty of Circular 230 §10.35, personnel who use AI in client work must understand how the tools function and their limitations - including the risk of fabricated or inaccurate output ("hallucinations"), bias, and outdated information. Staff must complete the firm’s AI-use training before using AI on client matters, and periodically thereafter. Completion is recorded.</p>'
+
+    + '<h2>6. Written Advice <span class="cite">§10.37</span></h2>'
+    + '<p>Where AI assists in preparing written advice, the responsible practitioner must ensure the advice rests on a reasonable factual and legal basis consistent with Circular 230 §10.37. AI-suggested authorities, assumptions, and conclusions must be independently verified before the advice is issued.</p>'
+
+    + '<h2>7. Documentation &amp; Recordkeeping <span class="cite">§10.36</span></h2>'
+    + '<p>Section 10.36 requires the firm not only to adopt procedures but to <strong>ensure they are followed</strong>. The firm therefore maintains a record of AI-assisted work that documents, for each item: the tool used, the person who used and reviewed it, the verification performed, and the reviewer’s approval. These records are retained and available to demonstrate supervision to the IRS or a client on request.</p>'
+
+    + '<h2>8. Fees <span class="cite">§10.27</span></h2>'
+    + '<p>Fees for AI-assisted work reflect the actual professional work performed, consistent with Circular 230 §10.27. Efficiency gains from AI do not change the practitioner’s responsibility for the work.</p>'
+
+    + '<h2>9. Roles &amp; Enforcement</h2>'
+    + '<p>'+officer+' is responsible for maintaining this policy, the approved-tool register, and the training and review records, and for reviewing this policy at least annually and upon any material change in IRS guidance. Violations of this policy may result in corrective action. All personnel must acknowledge this policy before using AI in client work.</p>'
+    + aupClause
+
+    + '<div class="sig">'
+    +   '<div class="line">Employee signature &amp; date</div>'
+    +   '<div class="line">'+officer+' (approving) &amp; date</div>'
+    + '</div>'
+
+    + '<div class="footer"><strong>Disclaimer.</strong> This document was generated by AI Compliance as a template for the firm’s consideration. It is not legal or tax advice and does not guarantee compliance with Circular 230 or any other law. It must be reviewed and adapted by qualified counsel and the firm before adoption. Regulatory citations reflect IRS OPR Alert 2026-19 and Treasury Circular 230 as of the effective date shown; confirm current guidance before relying on it.</div>';
+
+    $('#doc').innerHTML = html;
+    $('#print').disabled = false;
+    $('#word').disabled = false;
+    $('#edit').disabled = false;
+    $('#sendReview').disabled = false;
+    setEditing(false);        // fresh rebuild → leave edit mode in a clean state
+    maybeOfferRestore();
+  }
+
+  // Prefill firm name from the lead form (funnel handoff). No login/save here - the free-policy
+  // lead form on the landing already captured the visitor before routing them to the generator.
+  var LEAD = { email:'', fname:'', lname:'' };
+  try {
+    var qs = new URLSearchParams(location.search);
+    var qFirm = qs.get('firm');
+    if (qFirm) $('#firm').value = qFirm;
+    LEAD.email = (qs.get('email')||'').trim().slice(0,320);
+    LEAD.fname = (qs.get('fname')||'').trim().slice(0,100);
+    LEAD.lname = (qs.get('lname')||'').trim().slice(0,100);
+  } catch(e){}
+
+  // Snapshot the visitor's SELECTIONS (never client data, never the document) so the
+  // app can offer "import your generated policy as a draft" when they sign up later.
+  // Keyed to the lead email from the handoff; skipped for direct visitors with no email.
+  // Fire-and-forget: a failure never blocks or delays the generator.
+  // policy_gen_snapshot is anon INSERT-only under RLS (publishable key is client-safe).
+  // Set these to your Supabase project (publishable key only). Left as-is, snapshots are skipped.
+  var SUPA_URL='https://YOUR-PROJECT.supabase.co';
+  var SUPA_KEY='YOUR-PUBLISHABLE-KEY';
+  var SUPA_READY = SUPA_KEY.indexOf('YOUR-') !== 0;
+  var lastSnapshot='';
+  function snapshotSelections(){
+    if(!SUPA_READY || !LEAD.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(LEAD.email)) return;
+    try {
+      var inputs = {
+        // v2: "Other or Local" saved entries are merged into `tools` (the old
+        // local_llm/other_tool fields are gone), matching the app form's shape.
+        v: 2,
+        firm: $('#firm').value.trim().slice(0,200),
+        officer: $('#officer').value.trim().slice(0,120),
+        size: $('#size').value,
+        ptypes: checked('#ptypes'),
+        tools: checked('#tools').concat(checked('#tools-other')),
+        pii: radio('pii'), wisp: radio('wisp'), aup: radio('aup'), byo: radio('byo'),
+        effective: $('#eff').value || null
+      };
+      var payload = JSON.stringify({ email: LEAD.email, first_name: LEAD.fname||null, last_name: LEAD.lname||null,
+        firm_name: inputs.firm||null, inputs: inputs, source: 'policy_gen' });
+      if(payload === lastSnapshot) return;  // identical re-generate → skip
+      lastSnapshot = payload;
+      fetch(SUPA_URL+'/rest/v1/policy_gen_snapshot',{method:'POST',
+        headers:{apikey:SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: payload}).catch(function(){});
+    } catch(e){}
+  }
+
+  function slug(){ return (($('#firm').value.trim()||'firm').replace(/[^a-z0-9]+/gi,'-').toLowerCase()); }
+  // Clone the preview and strip screen-only chrome (watermark) for clean exports.
+  function cleanDocHtml(){
+    var c=$('#doc').cloneNode(true);
+    var wm=c.querySelector('.watermark'); if(wm) wm.remove();
+    return c.innerHTML;
+  }
+  // Word (.doc) export - HTML that Word / Google Docs open natively; dependency-free.
+  function downloadWord(){
+    var head='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1a2233} h1{font-size:16pt} h2{font-size:13pt;border-bottom:1px solid #333} .cite{color:#666;font-size:9pt}</style></head><body>';
+    var blob=new Blob(['﻿', head + cleanDocHtml() + '</body></html>'], {type:'application/msword'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='aicompliance-policy-'+slug()+'.doc';
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  // Repeatable "Other or Local" AI-system entries (mirrors the app form's
+  // OtherTools): each saved entry becomes a checked checkbox that flows into
+  // the policy + snapshot like the built-in tools; saving reveals a fresh
+  // empty field below so a firm can list several - e.g. local LLMs.
+  var otherWrap=$('#tools-other'), otherTxt=$('#tool-other-txt'), otherAdd=$('#tool-other-add');
+  function addOtherTool(){
+    var v=otherTxt.value.trim().slice(0,120);
+    if(!v) return;
+    var dup=Array.prototype.slice.call(otherWrap.querySelectorAll('input')).some(function(i){return i.value===v});
+    if(!dup){
+      var lab=document.createElement('label');
+      var cb=document.createElement('input'); cb.type='checkbox'; cb.value=v; cb.checked=true;
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(v));
+      otherWrap.appendChild(lab);
+    }
+    otherTxt.value=''; otherAdd.disabled=true;
+  }
+  otherAdd.addEventListener('click', addOtherTool);
+  otherTxt.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); addOtherTool(); } });
+  otherTxt.addEventListener('input', function(){ otherAdd.disabled=!otherTxt.value.trim(); });
+
+  // "?" explainers (WISP, AUP) - hover shows, click pins (hover alone is useless
+  // on touch), Escape closes. Same behavior as the app's InfoTip.
+  Array.prototype.forEach.call(document.querySelectorAll('.tip'), function(tip){
+    var btn=tip.querySelector('button'); if(!btn) return;
+    var pinned=false, hover=false;
+    function upd(){ var open=pinned||hover; tip.classList.toggle('open', open); btn.setAttribute('aria-expanded', String(open)); }
+    tip.addEventListener('mouseenter', function(){ hover=true; upd(); });
+    tip.addEventListener('mouseleave', function(){ hover=false; upd(); });
+    btn.addEventListener('click', function(){ pinned=!pinned; upd(); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && (pinned||hover)){ pinned=false; hover=false; upd(); } });
+  });
+
+  $('#gen').addEventListener('click', function(){ generate(); snapshotSelections(); });
+  $('#print').addEventListener('click', function(){ window.print(); });
+  $('#word').addEventListener('click', downloadWord);
+
+  /* ---- Edit-in-place + local save ----
+     No account here (this is the public generator), so edits are saved to THIS browser
+     only, keyed by firm. Exports (PDF/Word) read the live document, so edits are always
+     included whether or not they were saved. Attributed change logging (who/what/when)
+     lands in the authenticated app, not here. */
+  var EDIT_PREFIX = 'aicompliance-policy-edit:';
+  var editing = false;
+  function editKey(){ return EDIT_PREFIX + slug(); }
+  function status(msg, cls){
+    var el = $('#editStatus');
+    el.textContent = msg || '';
+    el.className = 'noprint' + (msg ? ' show ' + (cls || '') : '');
+  }
+  function setEditing(on){
+    editing = on;
+    var doc = $('#doc');
+    doc.setAttribute('contenteditable', on ? 'true' : 'false');
+    doc.classList.toggle('editing', on);
+    $('#edit').textContent = on ? 'Save changes' : 'Edit policy';
+    if(on){ doc.focus(); status('Editing - click into the document to change any text, then Save changes.', 'hint'); }
+  }
+  function toggleEdit(){
+    if($('#edit').disabled) return;
+    if(!editing){ setEditing(true); return; }
+    try { localStorage.setItem(editKey(), $('#doc').innerHTML); } catch(e){}
+    setEditing(false);
+    status('Saved to this browser ✓  Edits are included in the PDF / Word download.', 'saved');
+    setTimeout(function(){ if(!editing) status(''); }, 6000);
+  }
+  // After a fresh generate, if this firm has saved edits in this browser, offer to load them
+  // instead of silently discarding earlier manual work.
+  function maybeOfferRestore(){
+    var saved = null;
+    try { saved = localStorage.getItem(editKey()); } catch(e){}
+    if(saved && confirm('You have saved edits for "' + ($('#firm').value.trim() || 'this firm') + '" in this browser. Load your edited version instead of a fresh draft?')){
+      $('#doc').innerHTML = saved;
+      status('Loaded your saved edits ✓', 'saved');
+      setTimeout(function(){ if(!editing) status(''); }, 6000);
+    }
+  }
+  $('#edit').addEventListener('click', toggleEdit);
+
+  /* ---- Send-for-review lightbox ---- */
+  // Sample directory - illustrative placeholders only (not real endorsements).
+  var SAMPLE_ATTYS = [
+    {name:'[Sample] Dana Reyes, JD', firm:'Reyes Professional Responsibility Law', meta:'AI &amp; Circular 230 compliance · National'},
+    {name:'[Sample] Morgan Ellis, JD', firm:'Ellis Tax &amp; Ethics PLLC', meta:'Practitioner ethics, WISP/GLBA · KY, OH, IN'},
+    {name:'[Sample] Priya Nair, JD', firm:'Nair Data Privacy Group', meta:'Data privacy, IRC §7216, AI governance · CA, National'}
+  ];
+  var modal=$('#reviewModal'), atSel=null;
+
+  function renderAttys(){
+    $('#attyList').innerHTML = SAMPLE_ATTYS.map(function(a,i){
+      return '<label class="atty" data-i="'+i+'"><input type="radio" name="atpick" value="'+i+'">'
+        + '<span><span class="an">'+a.name+'</span><span class="am">'+a.firm+' - '+a.meta+'</span></span></label>';
+    }).join('');
+  }
+  function emailOk(v){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); }
+  function validate(){
+    var mode=radio('rmode'), ok=false;
+    if(mode==='mine'){
+      ok = $('#atName').value.trim() && emailOk($('#atEmail').value.trim()) && $('#atFirm').value.trim();
+    } else {
+      ok = !!document.querySelector('input[name="atpick"]:checked');
+    }
+    $('#rmSend').disabled = !ok;
+  }
+  function switchMode(){
+    var mode=radio('rmode');
+    $('#panel-mine').hidden = mode!=='mine';
+    $('#panel-find').hidden = mode!=='find';
+    if(mode==='find' && !$('#attyList').innerHTML) renderAttys();
+    validate();
+  }
+  var lastFocused=null;
+  // Visible, focusable elements inside the dialog (recomputed each use - panels toggle).
+  function focusables(){
+    return Array.prototype.slice.call(modal.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    )).filter(function(el){ return el.offsetParent!==null; });
+  }
+  function openModal(){
+    lastFocused = document.activeElement;
+    $('#rmForm').hidden=false; $('#rmSuccess').hidden=true;
+    modal.hidden=false; switchMode();
+    var f=focusables(); (f[0]||$('#rmClose')).focus();   // move focus into the dialog
+  }
+  function closeModal(){
+    modal.hidden=true;
+    if(lastFocused && lastFocused.focus) lastFocused.focus();   // restore focus to the trigger
+    lastFocused=null;
+  }
+
+  $('#sendReview').addEventListener('click', openModal);
+  $('#rmClose').addEventListener('click', closeModal);
+  $('#rmCancel').addEventListener('click', closeModal);
+  $('#rmDone').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e){ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if(modal.hidden) return;
+    if(e.key==='Escape'){ closeModal(); return; }
+    if(e.key==='Tab'){   // trap focus within the dialog
+      var f=focusables(); if(!f.length) return;
+      var first=f[0], last=f[f.length-1];
+      if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+    }
+  });
+  document.querySelectorAll('input[name="rmode"]').forEach(function(r){ r.addEventListener('change', switchMode); });
+  ['atName','atEmail','atFirm'].forEach(function(id){ $('#'+id).addEventListener('input', validate); });
+  $('#attyList').addEventListener('change', function(e){
+    if(e.target.name==='atpick'){
+      document.querySelectorAll('.atty').forEach(function(el){ el.classList.remove('sel'); });
+      e.target.closest('.atty').classList.add('sel'); validate();
+    }
+  });
+  $('#rmSend').addEventListener('click', function(){
+    var mode=radio('rmode'), who;
+    if(mode==='mine'){ who = $('#atName').value.trim()+' ('+$('#atFirm').value.trim()+')'; }
+    else { var i=document.querySelector('input[name="atpick"]:checked').value; who = SAMPLE_ATTYS[i].name.replace('[Sample] ','')+' ('+SAMPLE_ATTYS[i].firm.replace('&amp;','&')+')'; }
+    var firm = $('#firm').value.trim() || 'your firm';
+    $('#rmSuccessMsg').innerHTML = 'Delivery isn’t live in this preview - nothing was sent. Download the draft AI-use policy for <strong>'+esc(firm)+'</strong> and share it with <strong>'+esc(who)+'</strong> directly for review.';
+    $('#rmForm').hidden=true; $('#rmSuccess').hidden=false;
+    $('#rmDone').focus();   // keep focus inside the dialog after the form is replaced
+  });
+})();
+</script>
+</body>
+</html>

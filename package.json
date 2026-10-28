@@ -1,0 +1,10 @@
+{
+  "name": "aicompliance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Database tooling (migrations, RLS checks) for AI Compliance.",
+  "type": "commonjs",
+  "dependencies": {
+    "pg": "^8.22.0"
+  }
+}

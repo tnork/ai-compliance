@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140" role="img" aria-label="AI Compliance">
+
+  <path d="M60 8 L112.9 21 L112.9 64 C112.9 95 89.9 119 60 131 C30.1 119 7.1 95 7.1 64 L7.1 21 Z" fill="#0f1c3f" stroke="#34e0a1" stroke-width="2.5"></path>
+  <line x1="31.25" y1="47" x2="58.85" y2="47" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".9"></line>
+  <line x1="31.25" y1="59" x2="58.85" y2="59" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".62"></line>
+  <line x1="31.25" y1="71" x2="49.65" y2="71" stroke="#5bd0ec" stroke-width="5" stroke-linecap="round" opacity=".42"></line>
+  <path d="M34.7 85 L54.25 102 L96.8 51" fill="none" stroke="#34e0a1" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
